@@ -3,7 +3,7 @@
  * @author kisslune
  */
 
-#include "Graphs/SVFG.h"
+#include "Graphs/CallGraph.h"
 #include "SVF-LLVM/SVFIRBuilder.h"
 
 using namespace SVF;
@@ -28,6 +28,7 @@ int main(int argc, char** argv)
     assert(arg_num == (orgArgNum + extraArgc) && "more extra arguments? Change the value of extraArgc");
 
     moduleNameVec = OptionBase::parseOptions(arg_num, arg_value, "SVF IR", "[options] <input-bitcode...>");
+    delete[] arg_value;
 
     LLVMModuleSet::getLLVMModuleSet()->buildSVFModule(moduleNameVec);
 
@@ -35,10 +36,16 @@ int main(int argc, char** argv)
     SVFIRBuilder builder;
     cout << "Generating SVFIR(PAG), call graph and ICFG ..." << endl;
 
-    // TODO: here, generate SVFIR(PAG), call graph and ICFG, and dump them to files
+    // Build SVFIR together with its call graph and ICFG, then dump each graph.
     //@{
-
+    SVFIR* pag = builder.build();
+    pag->dump("svfir");
+    pag->getCallGraph()->dump("callgraph");
+    pag->getICFG()->dump("icfg");
     //@}
+
+    SVFIR::releaseSVFIR();
+    LLVMModuleSet::releaseLLVMModuleSet();
 
     return 0;
 }
